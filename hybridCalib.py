@@ -7,7 +7,7 @@ def load_txt():
     if np.size(sys.argv) != 1:
         file = open(sys.argv[1])
     else:
-        file = open("//dist/data.txt")
+        file = open("./data.txt")
     data = []
     for line in file.readlines():
         data.append(line)
@@ -48,7 +48,6 @@ def separate_scantime(scantime):
 
 
 def main():
-    print(sys.argv[0])
     main_innpara, sub_innpara, ruler_length, ruler_number, ruler_scantime, calib_point_number, \
         control_point, calib_scantime = handle_data(load_txt())
     # 基准尺扫描时间
