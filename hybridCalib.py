@@ -48,6 +48,18 @@ def separate_scantime(scantime):
     return main_station_point_scantime, sub_station_point_scantime
 
 
+def write_calib_result(main_transmitter, sub_transmitter):
+    with open("../CalibResult.txt", "w") as f:
+        angle_x, angle_y,angle_z = rotation_to_euler(main_transmitter.m_rotation)
+        f.write("1 "+str(angle_x)+" "+str(angle_y)+" "+str(angle_z)+" "+
+                str(main_transmitter.m_transformation[0])+" "+str(main_transmitter.m_transformation[1])
+                +" "+str(main_transmitter.m_transformation[2])+"\n")
+        angle_x, angle_y, angle_z = rotation_to_euler(sub_transmitter.m_rotation)
+        f.write("2 "+str(angle_x)+" "+str(angle_y)+" "+str(angle_z)+" "+
+                str(sub_transmitter.m_transformation[0])+" "+str(sub_transmitter.m_transformation[1])
+                +" "+str(sub_transmitter.m_transformation[2])+"\n")
+
+
 def main():
     main_innpara, sub_innpara, ruler_length, ruler_number, ruler_scantime, calib_point_number, \
         control_point, calib_scantime = handle_data(load_txt())
@@ -120,6 +132,7 @@ def main():
     print("Ruler point :\n", coordinate_second_iter)
     print("Control point :\n", coordinate_second_iter_control_point)
     print("Control point error :\n", control_point - coordinate_second_iter_control_point)
+    write_calib_result(main_transmitter,sub_transmitter)
     pass
 
 
