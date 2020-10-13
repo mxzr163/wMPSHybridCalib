@@ -1,5 +1,6 @@
 from RestrictionEquation import *
 from InitValueCalc import *
+from wMPSalgorithm import *
 import sys
 
 
@@ -7,7 +8,7 @@ def load_txt():
     if np.size(sys.argv) != 1:
         file = open(sys.argv[1])
     else:
-        file = open("./data.txt")
+        file = open("./data2.txt")
     data = []
     for line in file.readlines():
         data.append(line)
@@ -74,16 +75,25 @@ def main():
     main_transmitter.m_point_measure_scantime = main_station_point_scantime
     sub_transmitter.m_point_measure_scantime = sub_station_point_scantime
     coordinate_first_iter = calculate_coordinate(main_transmitter, sub_transmitter)  # 计算控制点在当前坐标系下坐标
-    rotation_to_global, transform_to_global = calculate_transformations(control_point,
-                                                                        coordinate_first_iter)  # 计算当前坐标系与全局坐标系转站关系
+    coordinate_first_iter_init = calculate_coordinate_with_ruler_time(main_transmitter, sub_transmitter)
+    rotation_to_global, transform_to_global = calculate_transformations(coordinate_first_iter,
+                                                                        control_point)  # 计算当前坐标系与全局坐标系转站关系
     main_transmitter.transform(rotation_to_global, transform_to_global)
     sub_transmitter.transform(rotation_to_global, transform_to_global)  # to global system
+    # main_transmitter.m_rotation = np.array([[0.527477637200955,-0.849559223462635,0.004058088523245],
+    #                                         [0.848773114486117 ,0.527184230187628,0.040755215212471],
+    #                                         [-0.036763329262120,-0.018053068189155,0.999160920147762]])
+    # main_transmitter.m_transformation = np.array([-2505.15644194695, -542.810242081196, -53.6473860256820])
+    # sub_transmitter.m_rotation = np.array([[-0.698241866639994, 0.715671312683760, -0.0165187128009871],
+    #                                        [-0.715431700920287, -0.698436311500665, -0.0185526304240255],
+    #                                        [-0.0248148542087592, -0.00113621250212959, 0.999691418404573]])
+    # sub_transmitter.m_transformation=np.array([1141.50291483433, 1784.81902295304,-31.8624080082071])
 
-    second_iter_init_global_point = transform_point(coordinate_first_iter, rotation_to_global,
-                                                    transform_to_global)  # 基准尺在全局坐标系下坐标
+    second_iter_init_global_point = transform_point_inv(coordinate_first_iter_init, rotation_to_global,
+                                                        transform_to_global)  # 基准尺在全局坐标系下坐标
     main_transmitter.m_point_calib_scantime = main_station_point_scantime
     sub_transmitter.m_point_calib_scantime = sub_station_point_scantime
-
+    # second_iter_init_global_point = calculate_coordinate_with_ruler_time(main_transmitter, sub_transmitter)
     # 拼接初值
     main_matrix = np.hstack((main_transmitter.m_rotation, np.transpose([main_transmitter.m_transformation])))
     sub_matrix = np.hstack((sub_transmitter.m_rotation, np.transpose([sub_transmitter.m_transformation])))
@@ -104,12 +114,13 @@ def main():
     sub_transmitter.m_transformation = result_second_iter.x[21:24]
 
     # 第二次迭代坐标（基准尺）
-    coordinate_second_iter = calculate_coordinate(main_transmitter, sub_transmitter)
+    coordinate_second_iter = calculate_coordinate_with_ruler_time(main_transmitter, sub_transmitter)
     coordinate_second_iter_control_point = calculate_coordinate_with_calib_time(main_transmitter, sub_transmitter)
 
     print("Ruler point :\n", coordinate_second_iter)
     print("Control point :\n", coordinate_second_iter_control_point)
     print("Control point error :\n", control_point - coordinate_second_iter_control_point)
+    pass
 
 
 if __name__ == '__main__':

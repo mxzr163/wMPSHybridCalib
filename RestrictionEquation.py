@@ -89,6 +89,7 @@ class HybridRestrictionEquation:
         self.m_control_point = control_point
 
     def function(self, outpara):
+        point_ratio = 10
         ruler_point_number = np.size(self.m_main_station_time, 0)
         control_point_number = np.size(self.m_control_point, 0)
         result = np.zeros(24)
@@ -131,20 +132,20 @@ class HybridRestrictionEquation:
             ct1 = np.cos(self.m_main_station_point_time[i, 0] * 2 * np.pi)
             st1 = np.sin(self.m_main_station_point_time[i, 0] * 2 * np.pi)
             v = np.array([[ct1, st1, 0], [-st1, ct1, 0], [0, 0, 1]]).dot(self.m_main_transmitter.m_innpara[0:3].T)
-            result = np.append(result, v.T.dot(main_control_point[i, :]) + self.m_main_transmitter.m_innpara[3])
+            result = np.append(result, point_ratio * (v.T.dot(main_control_point[i, :]) + self.m_main_transmitter.m_innpara[3]))
             ct2 = np.cos(self.m_main_station_point_time[i, 1] * 2 * np.pi)
             st2 = np.sin(self.m_main_station_point_time[i, 1] * 2 * np.pi)
             v = np.array([[ct2, st2, 0], [-st2, ct2, 0], [0, 0, 1]]).dot(self.m_main_transmitter.m_innpara[4:7].T)
-            result = np.append(result, v.T.dot(main_control_point[i, :]) + self.m_main_transmitter.m_innpara[7])
-        for i in range(ruler_point_number):
+            result = np.append(result, point_ratio * (v.T.dot(main_control_point[i, :]) + self.m_main_transmitter.m_innpara[7]))
+        for i in range(control_point_number):
             ct1 = np.cos(self.m_sub_station_point_time[i, 0] * 2 * np.pi)
             st1 = np.sin(self.m_sub_station_point_time[i, 0] * 2 * np.pi)
             v = np.array([[ct1, st1, 0], [-st1, ct1, 0], [0, 0, 1]]).dot(self.m_sub_transmitter.m_innpara[0:3].T)
-            result = np.append(result, v.T.dot(sub_control_point[i, :]) + self.m_sub_transmitter.m_innpara[3])
+            result = np.append(result, point_ratio * (v.T.dot(sub_control_point[i, :]) + self.m_sub_transmitter.m_innpara[3]))
             ct2 = np.cos(self.m_sub_station_point_time[i, 1] * 2 * np.pi)
             st2 = np.sin(self.m_sub_station_point_time[i, 1] * 2 * np.pi)
             v = np.array([[ct2, st2, 0], [-st2, ct2, 0], [0, 0, 1]]).dot(self.m_sub_transmitter.m_innpara[4:7].T)
-            result = np.append(result, v.T.dot(sub_control_point[i, :]) + self.m_sub_transmitter.m_innpara[7])
+            result = np.append(result, point_ratio * (v.T.dot(sub_control_point[i, :]) + self.m_sub_transmitter.m_innpara[7]))
         return result
 
     def resolve_function(self):

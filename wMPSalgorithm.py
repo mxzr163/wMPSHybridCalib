@@ -19,8 +19,8 @@ class Transmitter:
             self.m_ruler_calib_scantime = np.array([scantime])
 
     def transform(self, rotation, transformation):
-        self.m_rotation = rotation.T.dot(self.m_rotation)
-        self.m_transformation = rotation.T.dot(self.m_transformation - transformation)
+        self.m_transformation = self.m_rotation.dot(transformation) + self.m_transformation
+        self.m_rotation = self.m_rotation.dot(rotation)
 
 
 def calculate_transformations(point_group_dst, point_group_ref):
@@ -88,6 +88,44 @@ def calculate_coordinate(main_transmitter, sub_transmitter):
     return coordinate
 
 
+def calculate_coordinate_with_ruler_time(main_transmitter, sub_transmitter):
+    pointnumber = np.size(main_transmitter.m_ruler_calib_scantime, 0)
+    coordinate = np.zeros((pointnumber, 3))
+    for i in range(pointnumber):
+        a = np.zeros((4, 3))
+        b = np.zeros((4, 1))
+        ct1 = np.cos(main_transmitter.m_ruler_calib_scantime[i, 0] * 2 * np.pi)
+        st1 = np.sin(main_transmitter.m_ruler_calib_scantime[i, 0] * 2 * np.pi)
+        a[0, :] = main_transmitter.m_innpara[0:3].dot([[ct1, -st1, 0],
+                                                       [st1, ct1, 0],
+                                                       [0, 0, 1]]).dot(main_transmitter.m_rotation)
+        b[0] = -main_transmitter.m_innpara[3] - a[0, :].dot(main_transmitter.m_rotation.T) \
+            .dot(main_transmitter.m_transformation)
+        ct2 = np.cos(main_transmitter.m_ruler_calib_scantime[i, 1] * 2 * np.pi)
+        st2 = np.sin(main_transmitter.m_ruler_calib_scantime[i, 1] * 2 * np.pi)
+        a[1, :] = main_transmitter.m_innpara[4:7].dot([[ct2, -st2, 0],
+                                                       [st2, ct2, 0],
+                                                       [0, 0, 1]]).dot(main_transmitter.m_rotation)
+        b[1] = -main_transmitter.m_innpara[7] - a[1, :].dot(main_transmitter.m_rotation.T) \
+            .dot(main_transmitter.m_transformation)
+        ct1 = np.cos(sub_transmitter.m_ruler_calib_scantime[i, 0] * 2 * np.pi)
+        st1 = np.sin(sub_transmitter.m_ruler_calib_scantime[i, 0] * 2 * np.pi)
+        a[2, :] = sub_transmitter.m_innpara[0:3].dot([[ct1, -st1, 0],
+                                                      [st1, ct1, 0],
+                                                      [0, 0, 1]]).dot(sub_transmitter.m_rotation)
+        b[2] = -sub_transmitter.m_innpara[3] - a[2, :].dot(sub_transmitter.m_rotation.T) \
+            .dot(sub_transmitter.m_transformation)
+        ct2 = np.cos(sub_transmitter.m_ruler_calib_scantime[i, 1] * 2 * np.pi)
+        st2 = np.sin(sub_transmitter.m_ruler_calib_scantime[i, 1] * 2 * np.pi)
+        a[3, :] = sub_transmitter.m_innpara[4:7].dot([[ct2, -st2, 0],
+                                                      [st2, ct2, 0],
+                                                      [0, 0, 1]]).dot(sub_transmitter.m_rotation)
+        b[3] = -sub_transmitter.m_innpara[7] - a[3, :].dot(sub_transmitter.m_rotation.T) \
+            .dot(sub_transmitter.m_transformation)
+        coordinate[i, :] = np.linalg.inv(a.T.dot(a)).dot(a.T.dot(b)).T
+    return coordinate
+
+
 def calculate_coordinate_with_calib_time(main_transmitter, sub_transmitter):
     pointnumber = np.size(main_transmitter.m_point_calib_scantime, 0)
     coordinate = np.zeros((pointnumber, 3))
@@ -140,3 +178,25 @@ def transform_point_inv(point_group, rotation, transformation):
     for i in range(point_number):
         point_dst[i, :] = rotation.T.dot(point_group[i, :] - transformation)
     return point_dst
+
+
+def euler_to_rotation(angle_x, angle_y, angle_z):
+    rotation_x = np.array([[1, 0, 0],
+                           [0, np.cos(angle_x), -np.sin(angle_x)],
+                           [0, np.sin(angle_x), np.cos(angle_x)]])
+    rotation_y = np.array([[np.cos(angle_y), 0, np.sin(angle_y)],
+                           [0, 1, 0],
+                           [-np.sin(angle_y), 0, np.cos(angle_y)]])
+    rotation_z = np.array([[np.cos(angle_z), -np.sin(angle_z), 0],
+                           [np.sin(angle_z), np.cos(angle_z), 0],
+                           [0, 0, 1]])
+    rotation = rotation_z.dot(rotation_y.dot(rotation_x))
+    return rotation
+
+
+def rotation_to_euler(rotation):
+    angle_x = np.arctan2(rotation[2,1], rotation[2,2])
+    angle_y = np.arctan2(-rotation[2,0], np.sqrt(rotation[0,0] * rotation[0,0] + rotation[1,0] * rotation[1,0]))
+    angle_z = np.arctan2(rotation[1,0], rotation[0,0])
+    return angle_x, angle_y, angle_z
+

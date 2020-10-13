@@ -36,16 +36,32 @@ class InitValueCalc:
                                             [-np.sin(second_scantime), np.cos(second_scantime), 0],
                                             [0, 0, 1]]).dot(self.m_main_transmitter.m_innpara[4:7].T)
             line = np.cross(second_plane_vector, first_plane_vector)
-            if line[1] > 0:
-                if line[0] > 0:
-                    hor_angle[i] = np.arctan(line[1] / line[0])
+            if line[0]*first_plane_vector[1]-line[1]*first_plane_vector[0]<0:
+                line[0] = -line[0]
+                line[1] = -line[1]
+                line[2] = -line[2]
+            hor_angle_sin = line[1]/np.sqrt(line[0]*line[0] + line[1] * line[1])
+            hor_angle_cos = line[0]/np.sqrt(line[0]*line[0] + line[1] * line[1])
+            if hor_angle_sin >= 0:
+                if hor_angle_cos >= 0:
+                    hor_angle[i] = np.arcsin(hor_angle_sin)
                 else:
-                    hor_angle[i] = np.arctan(line[1] / line[0]) + np.pi
+                    hor_angle[i] = np.pi - np.arcsin(hor_angle_sin)
             else:
-                if line[0] > 0:
-                    hor_angle[i] = np.arctan(line[1] / line[0]) + 2 * np.pi
+                if hor_angle_cos >= 0:
+                    hor_angle[i] = np.arcsin(hor_angle_sin) +np.pi * 2
                 else:
-                    hor_angle[i] = np.arctan(line[1] / line[0]) + np.pi
+                    hor_angle[i] = np.pi - np.arcsin(hor_angle_sin)
+            # if line[1] > 0:
+            #     if line[0] > 0:
+            #         hor_angle[i] = np.arctan(line[1] / line[0])
+            #     else:
+            #         hor_angle[i] = np.arctan(line[1] / line[0]) + np.pi
+            # else:
+            #     if line[0] > 0:
+            #         hor_angle[i] = np.arctan(line[1] / line[0]) + 2 * np.pi
+            #     else:
+            #         hor_angle[i] = np.arctan(line[1] / line[0]) + np.pi
             ver_angle[i] = np.arctan(line[2] / np.sqrt(line[0] * line[0] + line[1] * line[1]))
             if i % 2 == 1:
                 point_length = self.m_ruler_length / np.abs(np.tan(ver_angle[i - 1]) - np.tan(ver_angle[i]))
@@ -72,16 +88,32 @@ class InitValueCalc:
                                             [-np.sin(second_scantime), np.cos(second_scantime), 0],
                                             [0, 0, 1]]).dot(self.m_sub_transmitter.m_innpara[4:7].T)
             line = np.cross(second_plane_vector, first_plane_vector)
-            if line[1] > 0:
-                if line[0] > 0:
-                    hor_angle[i] = np.arctan(line[1] / line[0])
+            if line[0]*first_plane_vector[1]-line[1]*first_plane_vector[0]<0:
+                line[0] = -line[0]
+                line[1] = -line[1]
+                line[2] = -line[2]
+            hor_angle_sin = line[1]/np.sqrt(line[0]*line[0] + line[1] * line[1])
+            hor_angle_cos = line[0]/np.sqrt(line[0]*line[0] + line[1] * line[1])
+            if hor_angle_sin >= 0:
+                if hor_angle_cos >= 0:
+                    hor_angle[i] = np.arcsin(hor_angle_sin)
                 else:
-                    hor_angle[i] = np.arctan(line[1] / line[0]) + np.pi
+                    hor_angle[i] = np.pi - np.arcsin(hor_angle_sin)
             else:
-                if line[0] > 0:
-                    hor_angle[i] = np.arctan(line[1] / line[0]) + 2 * np.pi
+                if hor_angle_cos >= 0:
+                    hor_angle[i] = np.arcsin(hor_angle_sin) +np.pi * 2
                 else:
-                    hor_angle[i] = np.arctan(line[1] / line[0]) + np.pi
+                    hor_angle[i] = np.pi - np.arcsin(hor_angle_sin)
+            # if line[1] > 0:
+            #     if line[0] > 0:
+            #         hor_angle[i] = np.arctan(line[1] / line[0])
+            #     else:
+            #         hor_angle[i] = np.arctan(line[1] / line[0]) + np.pi
+            # else:
+            #     if line[0] > 0:
+            #         hor_angle[i] = np.arctan(line[1] / line[0]) + 2 * np.pi
+            #     else:
+            #         hor_angle[i] = np.arctan(line[1] / line[0]) + np.pi
             ver_angle[i] = np.arctan(line[2] / np.sqrt(line[0] * line[0] + line[1] * line[1]))
             if i % 2 == 1:
                 point_length = self.m_ruler_length / np.abs(np.tan(ver_angle[i - 1]) - np.tan(ver_angle[i]))
