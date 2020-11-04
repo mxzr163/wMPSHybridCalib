@@ -1,11 +1,8 @@
 from RestrictionEquation import *
 from InitValueCalc import *
-from wMPSalgorithm import *
+from wMPSAlgorithm import *
 from tkinter import filedialog
-from numpy import eye, size, zeros, array, vstack, mean, tile, \
-    sum, cos, sin, pi, arctan2, float64, tan, cross, sqrt, arcsin, arctan,\
-    append, hstack, transpose, abs
-from numpy.linalg import svd, inv, det
+from numpy import size, zeros, array, float64, hstack, transpose
 
 
 def load_txt():
@@ -29,24 +26,24 @@ def handle_data(data):
     sub_innpara = array(data[1].split(), float64)
     ruler_length = float(data[2])
     ruler_number = int(data[3])
-    ruler_scantime = data[4:4 + ruler_number * 2]
+    ruler_scan_time = data[4:4 + ruler_number * 2]
     calib_point_number = int(data[4 + ruler_number * 2])
     calib_point = solve_raw_data(data[5 + ruler_number * 2:5 + ruler_number * 2 + calib_point_number])
-    calib_scantime = solve_raw_data(data[5 + ruler_number * 2 + calib_point_number:])
-    return main_innpara, sub_innpara, ruler_length, ruler_number, ruler_scantime, \
-        calib_point_number, calib_point, calib_scantime
+    calib_scan_time = solve_raw_data(data[5 + ruler_number * 2 + calib_point_number:])
+    return main_innpara, sub_innpara, ruler_length, ruler_number, ruler_scan_time, \
+        calib_point_number, calib_point, calib_scan_time
 
 
-def separate_scantime(scantime):
-    scantime_number = size(scantime, 0)
-    main_station_point_scantime = zeros((int(scantime_number / 2), 2))
-    sub_station_point_scantime = zeros((int(scantime_number / 2), 2))
-    for i in range(scantime_number):
+def separate_scan_time(scan_time):
+    scan_time_number = size(scan_time, 0)
+    main_station_point_scan_time = zeros((int(scan_time_number / 2), 2))
+    sub_station_point_scan_time = zeros((int(scan_time_number / 2), 2))
+    for i in range(scan_time_number):
         if i % 2 == 0:
-            main_station_point_scantime[int(i / 2), :] = scantime[i, :]
+            main_station_point_scan_time[int(i / 2), :] = scan_time[i, :]
         else:
-            sub_station_point_scantime[int(i / 2), :] = scantime[i, :]
-    return main_station_point_scantime, sub_station_point_scantime
+            sub_station_point_scan_time[int(i / 2), :] = scan_time[i, :]
+    return main_station_point_scan_time, sub_station_point_scan_time
 
 
 def write_calib_result(main_transmitter, sub_transmitter):
@@ -63,17 +60,17 @@ def write_calib_result(main_transmitter, sub_transmitter):
 
 
 def main():
-    main_innpara, sub_innpara, ruler_length, ruler_number, ruler_scantime, calib_point_number, \
-        control_point, calib_scantime = handle_data(load_txt())
+    main_innpara, sub_innpara, ruler_length, ruler_number, ruler_scan_time, calib_point_number, \
+        control_point, calib_scan_time = handle_data(load_txt())
     # 基准尺扫描时间
-    main_station_point_scantime, sub_station_point_scantime = separate_scantime(calib_scantime)
-    print("Seperate_scantime")
+    main_station_point_scan_time, sub_station_point_scan_time = separate_scan_time(calib_scan_time)
+    print("Separate_scan_time")
     # 初始化发射站
     main_transmitter = Transmitter(main_innpara)
     sub_transmitter = Transmitter(sub_innpara)
     print("Init Transmitter")
     # 第一次迭代初值计算
-    a = InitValueCalc(ruler_length, ruler_scantime, main_transmitter, sub_transmitter)
+    a = InitValueCalc(ruler_length, ruler_scan_time, main_transmitter, sub_transmitter)
     print("InitValueCalc")
 
     global_rotation, global_transform = \
@@ -89,8 +86,8 @@ def main():
     sub_transmitter.m_rotation = result.x[0:9].reshape(3, 3).T
     sub_transmitter.m_transformation = result.x[9:12]  # 更新第二发射站外参
 
-    main_transmitter.m_point_measure_scantime = main_station_point_scantime
-    sub_transmitter.m_point_measure_scantime = sub_station_point_scantime
+    main_transmitter.m_point_measure_scan_time = main_station_point_scan_time
+    sub_transmitter.m_point_measure_scan_time = sub_station_point_scan_time
     coordinate_first_iter = calculate_coordinate(main_transmitter, sub_transmitter)  # 计算控制点在当前坐标系下坐标
     coordinate_first_iter_init = calculate_coordinate_with_ruler_time(main_transmitter, sub_transmitter)
     rotation_to_global, transform_to_global = calculate_transformations(coordinate_first_iter,
@@ -108,8 +105,8 @@ def main():
 
     second_iter_init_global_point = transform_point_inv(coordinate_first_iter_init, rotation_to_global,
                                                         transform_to_global)  # 基准尺在全局坐标系下坐标
-    main_transmitter.m_point_calib_scantime = main_station_point_scantime
-    sub_transmitter.m_point_calib_scantime = sub_station_point_scantime
+    main_transmitter.m_point_calib_scan_time = main_station_point_scan_time
+    sub_transmitter.m_point_calib_scan_time = sub_station_point_scan_time
     # second_iter_init_global_point = calculate_coordinate_with_ruler_time(main_transmitter, sub_transmitter)
     # 拼接初值
     main_matrix = hstack((main_transmitter.m_rotation, transpose([main_transmitter.m_transformation])))
