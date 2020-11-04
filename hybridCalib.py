@@ -1,3 +1,11 @@
+#
+#  InitValueCalc.py
+#  wMPSHybridCalib
+#
+#  Main
+#  Created by Zhang Rao on 2020/11/3.
+#  Copyright © 2020 Zhang Rao. All rights reserved.
+#
 from RestrictionEquation import *
 from InitValueCalc import *
 from wMPSAlgorithm import *
@@ -6,6 +14,10 @@ from numpy import size, zeros, array, float64, hstack, transpose
 
 
 def load_txt():
+    """
+    load txt file from select path
+    :return: a (line number,) array for raw string data
+    """
     file = open(filedialog.askopenfilename())
     data = []
     for line in file.readlines():
@@ -14,6 +26,11 @@ def load_txt():
 
 
 def solve_raw_data(data):
+    """
+    split string data to array
+    :param data: raw string data
+    :return: a (line number, col number) array for raw string data
+    """
     line_number = size(data)
     solved_data = zeros((line_number, size(data[0].split())))
     for i in range(line_number):
@@ -22,6 +39,21 @@ def solve_raw_data(data):
 
 
 def handle_data(data):
+    """
+    Handle the raw data
+    data format:
+    (, 8) main station inner parameter
+    (, 8) sub station inner parameter
+    (, 1) ruler length
+    (, 1) ruler point number(2 * ruler position number)
+    (2 * ruler point number, 2) ruler scan time
+    (, 1) control point number
+    (control point number, 3) control point coordinate
+    (2 * control point number, 2) control point scan time
+    :param data: raw data
+    :return: main_innpara, sub_innpara, ruler_length, ruler_number, ruler_scan_time,
+        calib_point_number, calib_point, calib_scan_time
+    """
     main_innpara = array(data[0].split(), float64)  # 发射站内参
     sub_innpara = array(data[1].split(), float64)
     ruler_length = float(data[2])
@@ -35,6 +67,11 @@ def handle_data(data):
 
 
 def separate_scan_time(scan_time):
+    """
+    separate point scan time to different transmitter
+    :param scan_time: mixed scan time
+    :return: main_station_point_scan_time, sub_station_point_scan_time
+    """
     scan_time_number = size(scan_time, 0)
     main_station_point_scan_time = zeros((int(scan_time_number / 2), 2))
     sub_station_point_scan_time = zeros((int(scan_time_number / 2), 2))
@@ -47,6 +84,12 @@ def separate_scan_time(scan_time):
 
 
 def write_calib_result(main_transmitter, sub_transmitter):
+    """
+    write calibration results to selected path
+    :param main_transmitter:
+    :param sub_transmitter:
+    :return:
+    """
     file_name = filedialog.askdirectory() + "/CalibResult.txt"
     with open(file_name, "w") as f:
         angle_x, angle_y, angle_z = rotation_to_euler(main_transmitter.m_rotation)
@@ -60,6 +103,10 @@ def write_calib_result(main_transmitter, sub_transmitter):
 
 
 def main():
+    """
+    MAIN
+    :return:
+    """
     main_innpara, sub_innpara, ruler_length, ruler_number, ruler_scan_time, calib_point_number, \
         control_point, calib_scan_time = handle_data(load_txt())
     # 基准尺扫描时间

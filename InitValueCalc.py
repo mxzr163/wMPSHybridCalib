@@ -1,8 +1,28 @@
-from numpy import size, zeros, array, cos, sin, pi, tan, cross, sqrt, arcsin, arctan,\
+#
+#  InitValueCalc.py
+#  wMPSHybridCalib
+#
+#  Created by Zhang Rao on 2020/11/3.
+#  Copyright © 2020 Zhang Rao. All rights reserved.
+#
+from numpy import size, zeros, array, cos, sin, pi, tan, cross, sqrt, arcsin, arctan, \
     append, abs, float64
 
 
 class InitValueCalc:
+    """
+    This class is used to calculate the init value for calibration.
+
+        Attributes:
+            m_ruler_length: A float for saving ruler length.
+            m_raw_scan_time: A (2 * point number, 2) array for saving mixed scan time.
+            m_point_number: A int for saving ruler point number.
+            m_main_transmitter: A Transmitter class for main transmitter.
+            m_sub_transmitter: A Transmitter class for sub transmitter.
+            m_main_station_point: A (point number ,3) array for saving ruler point under main station coordinate system.
+            m_sub_station_point: A (point number ,3) array for saving ruler point under sub station coordinate system.
+        """
+
     def __init__(self, ruler_length, raw_scan_time, main_transmitter, sub_transmitter):
         self.m_ruler_length = ruler_length
         self.m_raw_scan_time = raw_scan_time
@@ -16,15 +36,23 @@ class InitValueCalc:
         self.cal_sub_station_init_value()
 
     def handle_raw_scan_time(self):
+        """
+        Saving raw scan time to different transmitter class.
+        :return:
+        """
         for i in range(self.m_point_number * 2):
             if i % 2:
                 self.m_sub_transmitter.ruler_calib_scan_time_append(array(self.m_raw_scan_time[i].split(),
-                                                                         float64))
+                                                                          float64))
             else:
                 self.m_main_transmitter.ruler_calib_scan_time_append(array(self.m_raw_scan_time[i].split(),
-                                                                          float64))
+                                                                           float64))
 
     def cal_main_station_init_value(self):
+        """
+        Calculate the init value for main_station(ruler point coordinate)
+        :return:
+        """
         hor_angle = zeros(self.m_point_number)
         ver_angle = zeros(self.m_point_number)
         for i in range(self.m_point_number):
@@ -77,6 +105,10 @@ class InitValueCalc:
         self.m_main_station_point = self.m_main_station_point.reshape(-1, 3)
 
     def cal_sub_station_init_value(self):
+        """
+        Calculate the init value for sub_station(ruler point coordinate)
+        :return:
+        """
         hor_angle = zeros(self.m_point_number)
         ver_angle = zeros(self.m_point_number)
         for i in range(self.m_point_number):

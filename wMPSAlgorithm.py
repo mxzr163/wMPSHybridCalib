@@ -217,6 +217,14 @@ def calculate_coordinate_with_calib_time(main_transmitter, sub_transmitter):
 
 
 def transform_point(point_group, rotation, transformation):
+    """
+    transform point group by given rotation and transformation.
+    R * X + T
+    :param point_group: A (point number, 3) array for saving the point coordinate.
+    :param rotation: A (3, 3) array for rotation matrix.
+    :param transformation: A (3,) array for transformation.
+    :return point_dst: A (point number, 3) array for saving the transformed point coordinate.
+    """
     point_number = size(point_group, 0)
     point_dst = zeros((point_number, 3))
     for i in range(point_number):
@@ -225,6 +233,14 @@ def transform_point(point_group, rotation, transformation):
 
 
 def transform_point_inv(point_group, rotation, transformation):
+    """
+    transform point group by given rotation and transformation.
+    R * (X -T)
+    :param point_group: A (point number, 3) array for saving the point coordinate.
+    :param rotation: A (3, 3) array for rotation matrix.
+    :param transformation: A (3,) array for transformation.
+    :return point_dst: A (point number, 3) array for saving the transformed point coordinate.
+    """
     point_number = size(point_group, 0)
     point_dst = zeros((point_number, 3))
     for i in range(point_number):
@@ -233,6 +249,14 @@ def transform_point_inv(point_group, rotation, transformation):
 
 
 def euler_to_rotation(angle_x, angle_y, angle_z):
+    """
+    generate rotation matrix by x, y ,z.
+    R = Rz * Ry * Rx
+    :param angle_x: A float for angle x.
+    :param angle_y: A float for angle y.
+    :param angle_z: A float for angle z.
+    :return rotation: A (3, 3) matrix for rotation.
+    """
     rotation_x = array([[1, 0, 0],
                         [0, cos(angle_x), -sin(angle_x)],
                         [0, sin(angle_x), cos(angle_x)]])
@@ -247,6 +271,14 @@ def euler_to_rotation(angle_x, angle_y, angle_z):
 
 
 def rotation_to_euler(rotation):
+    """
+    generate rotation angle x, y, z  by rotation matrix.
+    R = Rz * Ry * Rx
+    :param rotation: A (3, 3) matrix for rotation.
+    :return angle_x: A float for angle x.
+    :return angle_y: A float for angle y.
+    :return angle_z: A float for angle z.
+    """
     angle_x = arctan2(rotation[2, 1], rotation[2, 2])
     angle_y = arctan2(-rotation[2, 0], sqrt(rotation[0, 0] * rotation[0, 0] + rotation[1, 0] * rotation[1, 0]))
     angle_z = arctan2(rotation[1, 0], rotation[0, 0])
