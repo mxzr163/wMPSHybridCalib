@@ -3,6 +3,7 @@
 #  wMPSHybridCalib
 #
 #  Main
+#  pyinstaller lack libiomp5md.dll
 #  Created by Zhang Rao on 2020/11/3.
 #  Copyright © 2020 Zhang Rao. All rights reserved.
 #
